@@ -1,0 +1,174 @@
+/* PALETA DE COLORES: Fresca, profesional y limpia */
+:root {
+  --bg-body: #f3f4f6; /* Gris muy suave */
+  --bg-card: #ffffff; /* Blanco puro */
+  --text-main: #1f2937; /* Gris oscuro (no negro total para suavizar) */
+  --text-muted: #6b7280; /* Gris medio para etiquetas */
+  --primary: #4f46e5; /* Índigo vibrante */
+  --success: #10b981; /* Verde esmeralda */
+  --error: #ef4444; /* Rojo suave */
+  --border: #e5e7eb; /* Bordes sutiles */
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px; /* Para móviles */
+}
+
+.card {
+  background-color: var(--bg-card);
+  padding: 2.5rem;
+  border-radius: 16px; /* Bordes más redondeados */
+  width: 100%;
+  max-width: 420px;
+  /* Sombra suave y difusa (Estilo moderno) */
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+  border: 1px solid white;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  font-size: 1.5rem;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+  text-transform: uppercase; /* Toque técnico */
+}
+
+input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background-color: #f9fafb; /* Fondo input muy sutil */
+  color: var(--text-main);
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+}
+
+/* Efecto al hacer click (Focus) */
+input:focus {
+  outline: none;
+  background-color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); /* Anillo de luz */
+}
+
+/* --- FEEDBACK VISUAL --- */
+
+input.valid {
+  border-color: var(--success);
+  background-color: #f0fdf4; /* Fondo verde muy pálido */
+}
+
+input.invalid {
+  border-color: var(--error);
+  background-color: #fef2f2; /* Fondo rojo muy pálido */
+  animation: shake 0.3s ease-in-out; /* Pequeña animación de error */
+}
+
+.helper-text {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  min-height: 1.2rem;
+  font-weight: 500;
+}
+
+.success-msg {
+  color: var(--success);
+  display: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.error-msg {
+  color: var(--error);
+  display: none;
+}
+
+.password-wrapper {
+  position: relative; /* Para que el botón se posicione respecto a esto */
+  width: 100%;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%); /* Centrado vertical perfecto */
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover {
+  color: var(--primary);
+}
+
+/* Ajustamos el padding del input password para que el texto no choque con el icono */
+#password {
+  padding-right: 40px;
+}
+
+/* Lógica de visualización */
+input.valid + .helper-text .success-msg {
+  display: inline-block;
+}
+input.invalid + .helper-text .error-msg {
+  display: inline-block;
+}
+
+/* Ocultar mensajes por defecto si no hay clase */
+.helper-text span {
+  display: none;
+}
+
+/* Animación de sacudida sutil para errores */
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

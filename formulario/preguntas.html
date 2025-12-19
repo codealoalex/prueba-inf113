@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz RegEx JS</title>
+    <style>
+      /* --- ESTILOS (Misma paleta que el formulario) --- */
+      :root {
+        --bg-body: #f3f4f6;
+        --bg-card: #ffffff;
+        --text-main: #1f2937;
+        --primary: #4f46e5;
+        --success: #10b981;
+        --error: #ef4444;
+        --border: #e5e7eb;
+      }
+
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .quiz-card {
+        background-color: var(--bg-card);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 500px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .quiz-header {
+        padding: 2rem 2rem 0;
+      }
+
+      .progress-text {
+        color: #6b7280;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      h2 {
+        margin-top: 10px;
+        font-size: 1.4rem;
+        line-height: 1.4;
+      }
+
+      .quiz-body {
+        padding: 1rem 2rem 2rem;
+      }
+
+      /* Botones de Opciones */
+      .btn-option {
+        display: block;
+        width: 100%;
+        background: #fff;
+        border: 2px solid var(--border);
+        padding: 1rem;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        font-size: 1rem;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-main);
+        font-weight: 500;
+      }
+
+      .btn-option:hover:not([disabled]) {
+        border-color: var(--primary);
+        background-color: #eef2ff;
+      }
+
+      /* Estados de respuesta */
+      .btn-option.correct {
+        background-color: var(--success);
+        border-color: var(--success);
+        color: white;
+      }
+
+      .btn-option.wrong {
+        background-color: var(--error);
+        border-color: var(--error);
+        color: white;
+      }
+
+      /* Botón Siguiente */
+      .btn-next {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        float: right;
+        display: none; /* Oculto hasta responder */
+      }
+
+      .btn-next:hover {
+        opacity: 0.9;
+      }
+
+      /* Pantalla de Resultados */
+      .result-screen {
+        text-align: center;
+        padding: 3rem;
+        display: none;
+      }
+
+      .score-big {
+        font-size: 4rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0;
+      }
+
+      code {
+        background: #1f2937;
+        color: #4ade80;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="quiz-card" id="quiz-container">
+      <div id="question-screen">
+        <div class="quiz-header">
+          <span class="progress-text" id="progress">Pregunta 1 de 5</span>
+          <h2 id="question-text">Cargando pregunta...</h2>
+        </div>
+
+        <div class="quiz-body">
+          <div id="options-container"></div>
+
+          <button id="next-btn" class="btn-next">Siguiente Pregunta →</button>
+        </div>
+      </div>
+
+      <div id="result-screen" class="result-screen">
+        <h2>¡Quiz Completado!</h2>
+        <p>Tu puntuación final es:</p>
+        <p class="score-big" id="final-score">0</p>
+        <p id="feedback-text">Texto de feedback</p>
+        <button
+          onclick="location.reload()"
+          class="btn-next"
+          style="display: inline-block; float: none; margin-top: 20px"
+        >
+          Reiniciar
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const questions = [
+        {
+          question:
+            "Necesito validar un correo simple (ej: 'juan@gmail.com'). ¿Qué expresión regular tiene la estructura correcta?",
+          options: [
+            { text: "/[a-z]@[a-z]/", correct: false },
+            { text: "/^\\S+@\\S+\\.\\S+$/", correct: true },
+            { text: "/mail.com$/", correct: false },
+            { text: "/^\\w+@\\w+$/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Quiero validar un celular de Bolivia: Debe empezar con 6 o 7 y tener exactamente 8 dígitos en total.",
+          options: [
+            { text: "/^\\d{8}$/", correct: false },
+            { text: "/^[6-7]\\d{8}$/", correct: false },
+            { text: "/^[67]\\d{7}$/", correct: true },
+            { text: "/[67]-\\d{7}/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Para aceptar una fecha EXCLUSIVAMENTE en formato 'DD/MM/AAAA' (ej: 25/12/2024), ¿cuál es la correcta?",
+          options: [
+            { text: "/\\d\\d\\d\\d\\d\\d\\d\\d/", correct: false },
+            { text: "/^\\d{2}\\/\\d{2}\\/\\d{4}$/", correct: true },
+            { text: "/^\\d{2}-\\d{2}-\\d{4}$/", correct: false },
+            { text: "/\\d+\\/\\d+\\/\\d+/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Un formulario pide un usuario que solo tenga letras minúsculas y mida entre 5 y 10 caracteres.",
+          options: [
+            { text: "/^[a-z]{5,10}$/", correct: true },
+            { text: "/^[a-z]{5-10}$/", correct: false },
+            { text: "/[a-z]{5}..../", correct: false },
+            { text: "/^[a-zA-Z0-9]{5,10}$/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Quiero validar un precio que PUEDE o NO tener decimales (ej: '100' o '100.50').",
+          options: [
+            { text: "/^\\d+\\.\\d+$/", correct: false },
+            { text: "/^\\d+(\\.\\d+)?$/", correct: true },
+            { text: "/^\\d+\\.?\\d+$/", correct: false },
+            { text: "/^\\d*\\.?\\d*$/", correct: false },
+          ],
+        },
+        {
+          question:
+            "¿Qué metacaracter usamos para representar cualquier dígito (0-9)?",
+          options: [
+            { text: "\\w", correct: false },
+            { text: "\\d", correct: true },
+            { text: "\\D", correct: false },
+            { text: "#", correct: false },
+          ],
+        },
+        {
+          question:
+            "Si quiero validar que un string comience exactamente con 'Hola', uso:",
+          options: [
+            { text: "^Hola", correct: true },
+            { text: "Hola$", correct: false },
+            { text: "*Hola", correct: false },
+            { text: "?Hola", correct: false },
+          ],
+        },
+        {
+          question:
+            "¿Cuál método de JavaScript devuelve true o false si existe el patrón?",
+          options: [
+            { text: "string.match()", correct: false },
+            { text: "regex.exec()", correct: false },
+            { text: "regex.test()", correct: true },
+            { text: "string.search()", correct: false },
+          ],
+        },
+        {
+          question: "¿Qué hace el cuantificador + en una expresión regular?",
+          options: [
+            { text: "Busca 0 o 1 coincidencia", correct: false },
+            { text: "Busca exactamente 1 coincidencia", correct: false },
+            { text: "Busca 1 o más coincidencias", correct: true },
+            { text: "Suma dos strings", correct: false },
+          ],
+        },
+        {
+          question:
+            "Para validar una condición sin 'consumir' caracteres (Lookahead), usamos:",
+          options: [
+            { text: "(?=...)", correct: true },
+            { text: "(?:...)", correct: false },
+            { text: "[^...]", correct: false },
+            { text: "\\b...\\b", correct: false },
+          ],
+        },
+        {
+          question:
+            "Solo permitimos correos de 'gmail.com', 'hotmail.com' o 'outlook.com'. ¿Qué regex valida esto estrictamente?",
+          options: [
+            { text: "/@gmail.com|hotmail.com|outlook.com$/", correct: false },
+            { text: "/@(gmail|hotmail|outlook).com$/", correct: false },
+            { text: "/@(gmail|hotmail|outlook)\\.com$/", correct: true },
+            { text: "/@[gmail,hotmail,outlook]\\.com$/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Contraseña segura: Mínimo 8 caracteres, al menos 1 mayúscula, 1 número y 1 símbolo especial (!@#).",
+          options: [
+            { text: "/^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#]).{8,}$/", correct: true },
+            { text: "/^[A-Z]+\\d+[!@#]+.{8,}$/", correct: false },
+            { text: "/^(?:[A-Z]|\\d|@).{8,}$/", correct: false },
+            { text: "/[A-Z0-9!@#]{8,}/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Para detectar errores de escritura como 'el el' o 'la la' (palabras repetidas), usamos:",
+          options: [
+            { text: "/(\\w+)\\s+\\1/", correct: true },
+            { text: "/(\\w+)\\s+\\w+/", correct: false },
+            { text: "/(\\w+)\\s+$1/", correct: false },
+            { text: "/word\\s+word/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Queremos validar una IP simple (formato: num.num.num.num). ¿Cuál es la forma más limpia de escribirlo?",
+          options: [
+            { text: "/^\\d+\\.\\d+\\.\\d+\\.\\d+$/", correct: false },
+            { text: "/^(\\d{1,3}\\.){3}\\d{1,3}$/", correct: true },
+            { text: "/^(\\d{1,3}\\.){4}$/", correct: false },
+            { text: "/\\d{1,3}\\.{3}\\d{1,3}/", correct: false },
+          ],
+        },
+        {
+          question:
+            "Solo queremos aceptar imágenes (.jpg, .png) sin importar si están en mayúsculas (.PNG) o minúsculas.",
+          options: [
+            { text: "/(jpg|png)$/", correct: false },
+            { text: "/\\.(jpg|png)$/i", correct: true },
+            { text: "/\\.jpg|\\.png$/i", correct: false },
+            { text: "/[jpg|png]$/i", correct: false },
+          ],
+        },
+      ];
+
+      // --- ESTADO DE LA APLICACIÓN ---
+      let currentQuestionIndex = 0;
+      let score = 0;
+
+      // Referencias al DOM
+      const questionText = document.getElementById("question-text");
+      const optionsContainer = document.getElementById("options-container");
+      const progressText = document.getElementById("progress");
+      const nextBtn = document.getElementById("next-btn");
+      const quizScreen = document.getElementById("question-screen");
+      const resultScreen = document.getElementById("result-screen");
+      const finalScore = document.getElementById("final-score");
+      const feedbackText = document.getElementById("feedback-text");
+
+      // --- FUNCIONES ---
+
+      function startQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+      }
+
+      function loadQuestion() {
+        resetState(); // Limpiar opciones anteriores
+
+        // Obtener pregunta actual
+        const currentQuestion = questions[currentQuestionIndex];
+
+        // Actualizar UI
+        questionText.innerText = currentQuestion.question;
+        progressText.innerText = `Pregunta ${currentQuestionIndex + 1} de ${
+          questions.length
+        }`;
+
+        // Generar botones dinámicamente
+        currentQuestion.options.forEach((option) => {
+          const button = document.createElement("button");
+          button.innerText = option.text;
+          button.classList.add("btn-option");
+
+          // Guardamos si es correcta en el dataset del botón
+          if (option.correct) {
+            button.dataset.correct = option.correct;
+          }
+
+          button.addEventListener("click", selectAnswer);
+          optionsContainer.appendChild(button);
+        });
+      }
+
+      function resetState() {
+        nextBtn.style.display = "none"; // Ocultar botón siguiente
+        while (optionsContainer.firstChild) {
+          optionsContainer.removeChild(optionsContainer.firstChild);
+        }
+      }
+
+      function selectAnswer(e) {
+        const selectedBtn = e.target;
+        const isCorrect = selectedBtn.dataset.correct === "true";
+
+        // Lógica de puntuación y colores
+        if (isCorrect) {
+          selectedBtn.classList.add("correct");
+          score++;
+        } else {
+          selectedBtn.classList.add("wrong");
+        }
+
+        // Mostrar cuál era la correcta (si se equivocó) y bloquear botones
+        Array.from(optionsContainer.children).forEach((button) => {
+          if (button.dataset.correct === "true") {
+            button.classList.add("correct"); // Resalta la correcta siempre
+          }
+          button.disabled = true; // Evitar múltiples clicks
+        });
+
+        // Mostrar botón siguiente
+        nextBtn.style.display = "block";
+      }
+
+      function showScore() {
+        quizScreen.style.display = "none";
+        resultScreen.style.display = "block";
+        finalScore.innerText = `${score} / ${questions.length}`;
+
+        // Feedback personalizado
+        if (score === 5) {
+          feedbackText.innerText = "¡Perfecto! Eres un maestro del RegEx.";
+          feedbackText.style.color = "var(--success)";
+        } else if (score >= 3) {
+          feedbackText.innerText =
+            "¡Buen trabajo! Tienes los conceptos claros.";
+          feedbackText.style.color = "var(--primary)";
+        } else {
+          feedbackText.innerText =
+            "Sigue practicando. Las RegEx requieren paciencia.";
+          feedbackText.style.color = "var(--error)";
+        }
+      }
+
+      // --- EVENT LISTENER BOTÓN SIGUIENTE ---
+      nextBtn.addEventListener("click", () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+          loadQuestion();
+        } else {
+          showScore();
+        }
+      });
+
+      // INICIAR
+      startQuiz();
+    </script>
+  </body>
+</html>
